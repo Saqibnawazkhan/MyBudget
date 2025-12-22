@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String?
+  currency      String    @default("USD")
+  timezone      String    @default("UTC")
+  monthStartDay Int       @default(1) // Day of month when budget cycle starts
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  categories    Category[]
+  transactions  Transaction[]
+  budgets       Budget[]
+
+  @@index([email])
+}
+
+model Category {
+  id              String    @id @default(cuid())
+  name            String
+  type            String    // "income" or "expense"
+  color           String    @default("#3b82f6")
+  icon            String    @default("tag")
+  isDefault       Boolean   @default(false)
+  parentId        String?
+  userId          String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent          Category? @relation("CategoryToSubcategory", fields: [parentId], references: [id], onDelete: SetNull)
+  subcategories   Category[] @relation("CategoryToSubcategory")
+  transactions    Transaction[]
+  budgets         Budget[]
+
+  @@unique([userId, name, type])
+  @@index([userId])
+  @@index([type])
+}
+
+model Transaction {
+  id            String    @id @default(cuid())
+  amount        Float     // Store as positive number
+  type          String    // "income" or "expense"
+  description   String?
+  date          DateTime
+  paymentMethod String?   // "cash", "card", "bank", "other"
+  notes         String?
+  tags          String?   // Comma-separated tags
+  isRecurring   Boolean   @default(false)
+  receiptUrl    String?
+  userId        String
+  categoryId    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category      Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId, date])
+  @@index([userId, categoryId])
+  @@index([userId, type])
+}
+
+model Budget {
+  id          String    @id @default(cuid())
+  amount      Float
+  month       String    // Format: "YYYY-MM"
+  categoryId  String?   // If null, it's an overall budget
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month, categoryId])
+  @@index([userId, month])
+}
