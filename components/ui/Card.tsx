@@ -6,10 +6,12 @@ import { HTMLAttributes, forwardRef } from "react";
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "glass" | "gradient";
   hover?: boolean;
+  animated?: boolean;
+  delay?: number;
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = "default", hover = false, children, ...props }, ref) => {
+  ({ className, variant = "default", hover = false, animated = false, delay = 0, children, ...props }, ref) => {
     const variants = {
       default: "bg-background-card border border-border",
       glass: "glass",
@@ -21,11 +23,13 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-xl p-6 transition-all duration-200",
+          "rounded-xl p-6 transition-all duration-300",
           variants[variant],
-          hover && "hover:border-border-light hover:shadow-lg",
+          hover && "card-interactive hover:border-border-light",
+          animated && "animate-fade-in-up",
           className
         )}
+        style={animated && delay > 0 ? { animationDelay: `${delay}ms` } : undefined}
         {...props}
       >
         {children}

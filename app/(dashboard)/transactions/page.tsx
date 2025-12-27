@@ -3,19 +3,17 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
-import { Card, Button, Input, Select, Modal, Badge } from "@/components/ui";
+import { Card, Button, Input, Select, Modal, Badge, EmptyState, SkeletonList } from "@/components/ui";
 import Header from "@/components/layout/Header";
 import { formatCurrency, formatDate, PAYMENT_METHODS } from "@/lib/utils";
 import {
   Plus,
   Search,
-  Filter,
   ArrowUpRight,
   ArrowDownRight,
   Edit2,
   Trash2,
-  X,
-  Calendar,
+  Receipt,
 } from "lucide-react";
 import type { Transaction, Category } from "@/types";
 
@@ -183,13 +181,15 @@ export default function TransactionsPage() {
 
   return (
     <div className="py-6">
-      <Header
-        title="Transactions"
-        subtitle="Track and manage your income and expenses"
-      />
+      <div className="animate-fade-in-up">
+        <Header
+          title="Transactions"
+          subtitle="Track and manage your income and expenses"
+        />
+      </div>
 
       {/* Filters */}
-      <Card className="mt-6">
+      <Card className="mt-6 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <Input
@@ -236,24 +236,17 @@ export default function TransactionsPage() {
       </Card>
 
       {/* Transactions List */}
-      <Card className="mt-6">
+      <Card className="mt-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="h-16 bg-background-secondary rounded-lg animate-pulse"
-              />
-            ))}
-          </div>
+          <SkeletonList items={5} />
         ) : transactions.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-text-muted mb-4">No transactions found</p>
-            <Button onClick={() => setShowModal(true)}>
-              <Plus className="w-4 h-4" />
-              Add Transaction
-            </Button>
-          </div>
+          <EmptyState
+            icon={Receipt}
+            title="No transactions found"
+            description="Start tracking your expenses and income to see them here"
+            actionLabel="Add Transaction"
+            onAction={() => setShowModal(true)}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -280,10 +273,11 @@ export default function TransactionsPage() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((transaction) => (
+                {transactions.map((transaction, index) => (
                   <tr
                     key={transaction.id}
-                    className="border-b border-border hover:bg-background-hover transition-colors"
+                    className="border-b border-border hover:bg-background-hover transition-all duration-300 animate-fade-in-up"
+                    style={{ animationDelay: `${300 + index * 30}ms` }}
                   >
                     <td className="py-4 px-4">
                       <span className="text-sm text-text-primary">
@@ -293,7 +287,7 @@ export default function TransactionsPage() {
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`p-2 rounded-lg ${
+                          className={`p-2 rounded-lg transition-transform hover:scale-110 ${
                             transaction.type === "income"
                               ? "bg-accent-green/10"
                               : "bg-accent-red/10"
@@ -361,13 +355,13 @@ export default function TransactionsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleEdit(transaction)}
-                          className="p-2 text-text-muted hover:text-text-primary hover:bg-background-hover rounded-lg transition-colors"
+                          className="p-2 text-text-muted hover:text-text-primary hover:bg-background-hover rounded-lg transition-all duration-200 hover:scale-110"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setShowDeleteConfirm(transaction.id)}
-                          className="p-2 text-text-muted hover:text-accent-red hover:bg-accent-red/10 rounded-lg transition-colors"
+                          className="p-2 text-text-muted hover:text-accent-red hover:bg-accent-red/10 rounded-lg transition-all duration-200 hover:scale-110"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

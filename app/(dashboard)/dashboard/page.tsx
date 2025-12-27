@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { Card, Badge, ProgressBar } from "@/components/ui";
+import { Card, ProgressBar, SummaryCard, EmptyState, SkeletonCard, QuickAction } from "@/components/ui";
 import Header from "@/components/layout/Header";
 import SpendingPieChart from "@/components/charts/SpendingPieChart";
 import IncomeExpenseBarChart from "@/components/charts/IncomeExpenseBarChart";
@@ -11,9 +11,9 @@ import {
   TrendingUp,
   TrendingDown,
   Wallet,
-  Plus,
   ArrowUpRight,
   ArrowDownRight,
+  PiggyBank,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -78,107 +78,73 @@ export default function DashboardPage() {
     fetchDashboard();
   }, []);
 
+  const currency = user?.currency || "USD";
+
   if (isLoading) {
     return (
-      <div className="py-6">
+      <div className="py-6 animate-fade-in">
         <Header title="Dashboard" subtitle="Loading your financial overview..." />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-32 bg-background-card border border-border rounded-xl animate-pulse"
-            />
-          ))}
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <Card className="h-80">
+            <div className="skeleton w-full h-full" />
+          </Card>
+          <Card className="h-80">
+            <div className="skeleton w-full h-full" />
+          </Card>
         </div>
       </div>
     );
   }
 
-  const currency = user?.currency || "USD";
-
   return (
     <div className="py-6">
-      <Header
-        title="Dashboard"
-        subtitle={`Welcome back, ${user?.name || "User"}! Here's your financial overview.`}
-      />
+      <div className="animate-fade-in-up">
+        <Header
+          title="Dashboard"
+          subtitle={`Welcome back, ${user?.name || "User"}! Here's your financial overview.`}
+        />
+      </div>
 
-      {/* Summary Cards */}
+      {/* Summary Cards - Using reusable SummaryCard component */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        {/* Income Card */}
-        <Card className="relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-accent-green/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="relative">
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">
-                Total Income
-              </span>
-              <div className="p-2 bg-accent-green/10 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-accent-green" />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-text-primary mt-2">
-              {formatCurrency(data?.summary.totalIncome || 0, currency)}
-            </p>
-            <p className="text-sm text-text-muted mt-1">
-              {formatMonth(new Date())}
-            </p>
-          </div>
-        </Card>
-
-        {/* Expense Card */}
-        <Card className="relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-accent-red/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="relative">
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">
-                Total Expense
-              </span>
-              <div className="p-2 bg-accent-red/10 rounded-lg">
-                <TrendingDown className="w-5 h-5 text-accent-red" />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-text-primary mt-2">
-              {formatCurrency(data?.summary.totalExpense || 0, currency)}
-            </p>
-            <p className="text-sm text-text-muted mt-1">
-              {formatMonth(new Date())}
-            </p>
-          </div>
-        </Card>
-
-        {/* Net Savings Card */}
-        <Card className="relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="relative">
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-sm font-medium">
-                Net Savings
-              </span>
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Wallet className="w-5 h-5 text-primary" />
-              </div>
-            </div>
-            <p
-              className={`text-3xl font-bold mt-2 ${
-                (data?.summary.netSavings || 0) >= 0
-                  ? "text-accent-green"
-                  : "text-accent-red"
-              }`}
-            >
-              {formatCurrency(data?.summary.netSavings || 0, currency)}
-            </p>
-            <p className="text-sm text-text-muted mt-1">
-              {formatMonth(new Date())}
-            </p>
-          </div>
-        </Card>
+        <SummaryCard
+          title="Total Income"
+          value={formatCurrency(data?.summary.totalIncome || 0, currency)}
+          subtitle={formatMonth(new Date())}
+          icon={TrendingUp}
+          iconColor="text-accent-green"
+          iconBgColor="bg-accent-green/10"
+          delay={0}
+        />
+        <SummaryCard
+          title="Total Expense"
+          value={formatCurrency(data?.summary.totalExpense || 0, currency)}
+          subtitle={formatMonth(new Date())}
+          icon={TrendingDown}
+          iconColor="text-accent-red"
+          iconBgColor="bg-accent-red/10"
+          delay={100}
+        />
+        <SummaryCard
+          title="Net Savings"
+          value={formatCurrency(data?.summary.netSavings || 0, currency)}
+          subtitle={formatMonth(new Date())}
+          icon={Wallet}
+          iconColor="text-primary"
+          iconBgColor="bg-primary/10"
+          valueColor={(data?.summary.netSavings || 0) >= 0 ? "text-accent-green" : "text-accent-red"}
+          delay={200}
+        />
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Income vs Expense Chart */}
-        <Card>
+        <Card animated delay={300} hover>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-text-primary">
               Income vs Expense
@@ -191,15 +157,14 @@ export default function DashboardPage() {
           />
         </Card>
 
-        {/* Spending by Category */}
-        <Card>
+        <Card animated delay={400} hover>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-text-primary">
               Spending by Category
             </h3>
             <Link
               href="/reports"
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-primary hover:underline transition-colors"
             >
               View Report
             </Link>
@@ -219,27 +184,30 @@ export default function DashboardPage() {
 
       {/* Budget Progress & Recent Transactions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Budget Progress */}
-        <Card>
+        <Card animated delay={500} hover>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-text-primary">
               Budget Progress
             </h3>
             <Link
               href="/budgets"
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-primary hover:underline transition-colors"
             >
               Manage Budgets
             </Link>
           </div>
           {data?.budgetProgress && data.budgetProgress.length > 0 ? (
             <div className="space-y-4">
-              {data.budgetProgress.map((budget) => (
-                <div key={budget.id}>
+              {data.budgetProgress.map((budget, index) => (
+                <div
+                  key={budget.id}
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${500 + index * 50}ms` }}
+                >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-3 h-3 rounded-full"
+                        className="w-3 h-3 rounded-full transition-transform hover:scale-125"
                         style={{ backgroundColor: budget.categoryColor }}
                       />
                       <span className="text-sm font-medium text-text-primary">
@@ -260,42 +228,41 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-text-muted mb-4">No budgets configured</p>
-              <Link
-                href="/budgets"
-                className="inline-flex items-center gap-2 text-primary hover:underline"
-              >
-                <Plus className="w-4 h-4" />
-                Set up a budget
-              </Link>
-            </div>
+            <EmptyState
+              icon={PiggyBank}
+              title="No budgets configured"
+              description="Set up budgets to track your spending limits"
+              actionLabel="Set up a budget"
+              actionHref="/budgets"
+            />
           )}
         </Card>
 
-        {/* Recent Transactions */}
-        <Card>
+        <Card animated delay={600} hover>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-text-primary">
               Recent Transactions
             </h3>
             <Link
               href="/transactions"
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-primary hover:underline transition-colors"
             >
               View All
             </Link>
           </div>
           {data?.recentTransactions && data.recentTransactions.length > 0 ? (
             <div className="space-y-3">
-              {data.recentTransactions.map((transaction) => (
+              {data.recentTransactions.map((transaction, index) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-3 bg-background-secondary rounded-lg"
+                  className="flex items-center justify-between p-3 bg-background-secondary rounded-lg
+                    transition-all duration-300 hover:bg-background-hover hover:translate-x-1
+                    animate-fade-in-up cursor-pointer"
+                  style={{ animationDelay: `${600 + index * 50}ms` }}
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`p-2 rounded-lg ${
+                      className={`p-2 rounded-lg transition-transform hover:scale-110 ${
                         transaction.type === "income"
                           ? "bg-accent-green/10"
                           : "bg-accent-red/10"
@@ -332,70 +299,59 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-text-muted mb-4">No transactions yet</p>
-              <Link
-                href="/transactions"
-                className="inline-flex items-center gap-2 text-primary hover:underline"
-              >
-                <Plus className="w-4 h-4" />
-                Add your first transaction
-              </Link>
-            </div>
+            <EmptyState
+              icon={Wallet}
+              title="No transactions yet"
+              description="Start tracking your income and expenses"
+              actionLabel="Add your first transaction"
+              actionHref="/transactions"
+            />
           )}
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mt-6">
+      {/* Quick Actions - Using reusable QuickAction component */}
+      <div className="mt-6 animate-fade-in-up" style={{ animationDelay: "700ms" }}>
         <h3 className="text-lg font-semibold text-text-primary mb-4">
           Quick Actions
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link
+          <QuickAction
             href="/transactions?action=add&type=expense"
-            className="flex items-center gap-3 p-4 bg-background-card border border-border rounded-xl hover:border-accent-red/50 transition-colors"
-          >
-            <div className="p-2 bg-accent-red/10 rounded-lg">
-              <ArrowDownRight className="w-5 h-5 text-accent-red" />
-            </div>
-            <span className="text-sm font-medium text-text-primary">
-              Add Expense
-            </span>
-          </Link>
-          <Link
+            icon={ArrowDownRight}
+            label="Add Expense"
+            iconColor="text-accent-red"
+            iconBgColor="bg-accent-red/10"
+            hoverBorderColor="hover:border-accent-red/50"
+            delay={750}
+          />
+          <QuickAction
             href="/transactions?action=add&type=income"
-            className="flex items-center gap-3 p-4 bg-background-card border border-border rounded-xl hover:border-accent-green/50 transition-colors"
-          >
-            <div className="p-2 bg-accent-green/10 rounded-lg">
-              <ArrowUpRight className="w-5 h-5 text-accent-green" />
-            </div>
-            <span className="text-sm font-medium text-text-primary">
-              Add Income
-            </span>
-          </Link>
-          <Link
+            icon={ArrowUpRight}
+            label="Add Income"
+            iconColor="text-accent-green"
+            iconBgColor="bg-accent-green/10"
+            hoverBorderColor="hover:border-accent-green/50"
+            delay={800}
+          />
+          <QuickAction
             href="/budgets"
-            className="flex items-center gap-3 p-4 bg-background-card border border-border rounded-xl hover:border-accent-purple/50 transition-colors"
-          >
-            <div className="p-2 bg-accent-purple/10 rounded-lg">
-              <Wallet className="w-5 h-5 text-accent-purple" />
-            </div>
-            <span className="text-sm font-medium text-text-primary">
-              Set Budget
-            </span>
-          </Link>
-          <Link
+            icon={Wallet}
+            label="Set Budget"
+            iconColor="text-accent-purple"
+            iconBgColor="bg-accent-purple/10"
+            hoverBorderColor="hover:border-accent-purple/50"
+            delay={850}
+          />
+          <QuickAction
             href="/reports"
-            className="flex items-center gap-3 p-4 bg-background-card border border-border rounded-xl hover:border-primary/50 transition-colors"
-          >
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-sm font-medium text-text-primary">
-              View Reports
-            </span>
-          </Link>
+            icon={TrendingUp}
+            label="View Reports"
+            iconColor="text-primary"
+            iconBgColor="bg-primary/10"
+            hoverBorderColor="hover:border-primary/50"
+            delay={900}
+          />
         </div>
       </div>
     </div>
