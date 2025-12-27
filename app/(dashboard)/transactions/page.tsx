@@ -14,6 +14,9 @@ import {
   Edit2,
   Trash2,
   Receipt,
+  Filter,
+  X,
+  ChevronDown,
 } from "lucide-react";
 import type { Transaction, Category } from "@/types";
 
@@ -24,10 +27,9 @@ export default function TransactionsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(
-    null
-  );
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,6 +50,9 @@ export default function TransactionsPage() {
   });
   const [formError, setFormError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Check if any filter is active
+  const hasActiveFilters = filterType || filterCategory || filterStartDate || filterEndDate;
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -86,7 +91,6 @@ export default function TransactionsPage() {
     fetchCategories();
     fetchTransactions();
 
-    // Check URL params for action
     const action = searchParams.get("action");
     const type = searchParams.get("type");
     if (action === "add") {
@@ -174,208 +178,211 @@ export default function TransactionsPage() {
     setFormError("");
   };
 
+  const clearFilters = () => {
+    setFilterType("");
+    setFilterCategory("");
+    setFilterStartDate("");
+    setFilterEndDate("");
+  };
+
   const currency = user?.currency || "USD";
-  const filteredCategories = categories.filter(
-    (cat) => cat.type === formData.type
-  );
+  const filteredCategories = categories.filter((cat) => cat.type === formData.type);
 
   return (
     <div className="py-6">
-      <div className="animate-fade-in-up">
+      {/* Clean Header with Add Button */}
+      <div className="flex items-center justify-between animate-fade-in-up">
         <Header
           title="Transactions"
-          subtitle="Track and manage your income and expenses"
+          subtitle="Track your income and expenses"
         />
+        <Button onClick={() => setShowModal(true)} className="gap-2">
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">Add</span>
+        </Button>
       </div>
 
-      {/* Filters */}
-      <Card className="mt-6 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <Input
+      {/* Simple Search Bar with Filter Toggle */}
+      <div className="mt-6 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+        <div className="flex gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+            <input
+              type="text"
               placeholder="Search transactions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              icon={<Search className="w-4 h-4" />}
+              className="w-full pl-10 pr-4 py-3 bg-background-card border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
             />
           </div>
-          <Select
-            options={[
-              { value: "", label: "All Types" },
-              { value: "income", label: "Income" },
-              { value: "expense", label: "Expense" },
-            ]}
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-          />
-          <Select
-            options={[
-              { value: "", label: "All Categories" },
-              ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
-            ]}
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-          />
-          <Input
-            type="date"
-            value={filterStartDate}
-            onChange={(e) => setFilterStartDate(e.target.value)}
-            className="w-40"
-          />
-          <Input
-            type="date"
-            value={filterEndDate}
-            onChange={(e) => setFilterEndDate(e.target.value)}
-            className="w-40"
-          />
-          <Button onClick={() => setShowModal(true)}>
-            <Plus className="w-4 h-4" />
-            Add
-          </Button>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${
+              hasActiveFilters
+                ? "bg-primary/10 border-primary text-primary"
+                : "bg-background-card border-border text-text-secondary hover:border-border-light"
+            }`}
+          >
+            <Filter className="w-4 h-4" />
+            <span className="hidden sm:inline">Filters</span>
+            {hasActiveFilters && (
+              <span className="w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">
+                {[filterType, filterCategory, filterStartDate, filterEndDate].filter(Boolean).length}
+              </span>
+            )}
+            <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
+          </button>
         </div>
-      </Card>
 
-      {/* Transactions List */}
-      <Card className="mt-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+        {/* Collapsible Filters */}
+        {showFilters && (
+          <Card className="mt-3 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium text-text-primary">Filter by</span>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                >
+                  <X className="w-3 h-3" />
+                  Clear all
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Select
+                label="Type"
+                options={[
+                  { value: "", label: "All" },
+                  { value: "income", label: "Income" },
+                  { value: "expense", label: "Expense" },
+                ]}
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+              />
+              <Select
+                label="Category"
+                options={[
+                  { value: "", label: "All" },
+                  ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
+                ]}
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+              />
+              <Input
+                type="date"
+                label="From"
+                value={filterStartDate}
+                onChange={(e) => setFilterStartDate(e.target.value)}
+              />
+              <Input
+                type="date"
+                label="To"
+                value={filterEndDate}
+                onChange={(e) => setFilterEndDate(e.target.value)}
+              />
+            </div>
+          </Card>
+        )}
+      </div>
+
+      {/* Transactions List - Card Style for Mobile */}
+      <div className="mt-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
         {isLoading ? (
           <SkeletonList items={5} />
         ) : transactions.length === 0 ? (
-          <EmptyState
-            icon={Receipt}
-            title="No transactions found"
-            description="Start tracking your expenses and income to see them here"
-            actionLabel="Add Transaction"
-            onAction={() => setShowModal(true)}
-          />
+          <Card>
+            <EmptyState
+              icon={Receipt}
+              title="No transactions found"
+              description="Start tracking your expenses and income"
+              actionLabel="Add Transaction"
+              onAction={() => setShowModal(true)}
+            />
+          </Card>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase">
-                    Date
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase">
-                    Description
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase">
-                    Category
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase">
-                    Type
-                  </th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-text-muted uppercase">
-                    Amount
-                  </th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-text-muted uppercase">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((transaction, index) => (
-                  <tr
-                    key={transaction.id}
-                    className="border-b border-border hover:bg-background-hover transition-all duration-300 animate-fade-in-up"
-                    style={{ animationDelay: `${300 + index * 30}ms` }}
-                  >
-                    <td className="py-4 px-4">
-                      <span className="text-sm text-text-primary">
-                        {formatDate(transaction.date)}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-lg transition-transform hover:scale-110 ${
-                            transaction.type === "income"
-                              ? "bg-accent-green/10"
-                              : "bg-accent-red/10"
-                          }`}
-                        >
-                          {transaction.type === "income" ? (
-                            <ArrowUpRight className="w-4 h-4 text-accent-green" />
-                          ) : (
-                            <ArrowDownRight className="w-4 h-4 text-accent-red" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-text-primary">
-                            {transaction.description || "No description"}
-                          </p>
-                          {transaction.notes && (
-                            <p className="text-xs text-text-muted truncate max-w-xs">
-                              {transaction.notes}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      {transaction.category ? (
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{
-                              backgroundColor: transaction.category.color,
-                            }}
-                          />
-                          <span className="text-sm text-text-secondary">
-                            {transaction.category.name}
-                          </span>
-                        </div>
+          <div className="space-y-3">
+            {transactions.map((transaction, index) => (
+              <div
+                key={transaction.id}
+                className="bg-background-card border border-border rounded-xl p-4 hover:border-border-light transition-all duration-200 animate-fade-in-up"
+                style={{ animationDelay: `${200 + index * 30}ms` }}
+              >
+                <div className="flex items-center justify-between">
+                  {/* Left: Icon + Info */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div
+                      className={`p-2.5 rounded-xl shrink-0 ${
+                        transaction.type === "income"
+                          ? "bg-accent-green/10"
+                          : "bg-accent-red/10"
+                      }`}
+                    >
+                      {transaction.type === "income" ? (
+                        <ArrowUpRight className="w-5 h-5 text-accent-green" />
                       ) : (
-                        <span className="text-sm text-text-muted">
-                          Uncategorized
-                        </span>
+                        <ArrowDownRight className="w-5 h-5 text-accent-red" />
                       )}
-                    </td>
-                    <td className="py-4 px-4">
-                      <Badge
-                        variant={
-                          transaction.type === "income" ? "income" : "expense"
-                        }
-                      >
-                        {transaction.type}
-                      </Badge>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <span
-                        className={`text-sm font-semibold ${
-                          transaction.type === "income"
-                            ? "text-accent-green"
-                            : "text-accent-red"
-                        }`}
-                      >
-                        {transaction.type === "income" ? "+" : "-"}
-                        {formatCurrency(transaction.amount, currency)}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleEdit(transaction)}
-                          className="p-2 text-text-muted hover:text-text-primary hover:bg-background-hover rounded-lg transition-all duration-200 hover:scale-110"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setShowDeleteConfirm(transaction.id)}
-                          className="p-2 text-text-muted hover:text-accent-red hover:bg-accent-red/10 rounded-lg transition-all duration-200 hover:scale-110"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-text-primary truncate">
+                        {transaction.description || transaction.category?.name || "Transaction"}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-text-muted">
+                          {formatDate(transaction.date)}
+                        </span>
+                        {transaction.category && (
+                          <>
+                            <span className="text-text-muted">•</span>
+                            <span className="text-xs text-text-secondary flex items-center gap-1">
+                              <span
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: transaction.category.color }}
+                              />
+                              {transaction.category.name}
+                            </span>
+                          </>
+                        )}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+
+                  {/* Right: Amount + Actions */}
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`font-semibold ${
+                        transaction.type === "income"
+                          ? "text-accent-green"
+                          : "text-accent-red"
+                      }`}
+                    >
+                      {transaction.type === "income" ? "+" : "-"}
+                      {formatCurrency(transaction.amount, currency)}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleEdit(transaction)}
+                        className="p-2 text-text-muted hover:text-text-primary hover:bg-background-hover rounded-lg transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(transaction.id)}
+                        className="p-2 text-text-muted hover:text-accent-red hover:bg-accent-red/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-      </Card>
+      </div>
 
-      {/* Add/Edit Modal */}
+      {/* Simplified Add/Edit Modal */}
       <Modal
         isOpen={showModal}
         onClose={() => {
@@ -385,22 +392,22 @@ export default function TransactionsPage() {
         title={editingTransaction ? "Edit Transaction" : "Add Transaction"}
         size="md"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {formError && (
             <div className="p-3 bg-accent-red/10 border border-accent-red/20 rounded-lg text-accent-red text-sm">
               {formError}
             </div>
           )}
 
-          {/* Type Toggle */}
-          <div className="flex gap-2 p-1 bg-background-secondary rounded-lg">
+          {/* Type Toggle - Larger and more prominent */}
+          <div className="flex gap-2 p-1.5 bg-background-secondary rounded-xl">
             <button
               type="button"
               onClick={() => setFormData((prev) => ({ ...prev, type: "expense", categoryId: "" }))}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
                 formData.type === "expense"
-                  ? "bg-accent-red text-white"
-                  : "text-text-secondary hover:text-text-primary"
+                  ? "bg-accent-red text-white shadow-sm"
+                  : "text-text-secondary hover:text-text-primary hover:bg-background-hover"
               }`}
             >
               Expense
@@ -408,70 +415,73 @@ export default function TransactionsPage() {
             <button
               type="button"
               onClick={() => setFormData((prev) => ({ ...prev, type: "income", categoryId: "" }))}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
                 formData.type === "income"
-                  ? "bg-accent-green text-white"
-                  : "text-text-secondary hover:text-text-primary"
+                  ? "bg-accent-green text-white shadow-sm"
+                  : "text-text-secondary hover:text-text-primary hover:bg-background-hover"
               }`}
             >
               Income
             </button>
           </div>
 
-          <Input
-            type="number"
-            label="Amount"
-            placeholder="0.00"
-            value={formData.amount}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, amount: e.target.value }))
-            }
-            required
-          />
+          {/* Amount - Large and prominent */}
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">
+              Amount
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-text-muted">
+                {currency === "USD" ? "$" : currency === "EUR" ? "€" : currency === "INR" ? "₹" : "$"}
+              </span>
+              <input
+                type="number"
+                placeholder="0.00"
+                value={formData.amount}
+                onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
+                className="w-full pl-12 pr-4 py-4 text-2xl font-semibold bg-background-secondary border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                required
+              />
+            </div>
+          </div>
 
-          <Select
-            label="Category"
-            options={filteredCategories.map((cat) => ({
-              value: cat.id,
-              label: cat.name,
-            }))}
-            value={formData.categoryId}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, categoryId: e.target.value }))
-            }
-            placeholder="Select category"
-          />
-
-          <Input
-            type="date"
-            label="Date"
-            value={formData.date}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, date: e.target.value }))
-            }
-            required
-          />
+          {/* Two column layout for smaller fields */}
+          <div className="grid grid-cols-2 gap-4">
+            <Select
+              label="Category"
+              options={filteredCategories.map((cat) => ({
+                value: cat.id,
+                label: cat.name,
+              }))}
+              value={formData.categoryId}
+              onChange={(e) => setFormData((prev) => ({ ...prev, categoryId: e.target.value }))}
+              placeholder="Select"
+            />
+            <Input
+              type="date"
+              label="Date"
+              value={formData.date}
+              onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+              required
+            />
+          </div>
 
           <Input
             label="Description"
             placeholder="What was this for?"
             value={formData.description}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, description: e.target.value }))
-            }
+            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
           />
 
           <Select
-            label="Payment Method"
+            label="Payment Method (Optional)"
             options={PAYMENT_METHODS}
             value={formData.paymentMethod}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, paymentMethod: e.target.value }))
-            }
-            placeholder="Select method"
+            onChange={(e) => setFormData((prev) => ({ ...prev, paymentMethod: e.target.value }))}
+            placeholder="Select"
           />
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <Button
               type="button"
               variant="secondary"
@@ -484,7 +494,7 @@ export default function TransactionsPage() {
               Cancel
             </Button>
             <Button type="submit" className="flex-1" isLoading={isSaving}>
-              {editingTransaction ? "Update" : "Add"} Transaction
+              {editingTransaction ? "Update" : "Add"}
             </Button>
           </div>
         </form>
@@ -498,8 +508,7 @@ export default function TransactionsPage() {
         size="sm"
       >
         <p className="text-text-secondary mb-6">
-          Are you sure you want to delete this transaction? This action cannot be
-          undone.
+          Are you sure you want to delete this transaction? This action cannot be undone.
         </p>
         <div className="flex gap-3">
           <Button

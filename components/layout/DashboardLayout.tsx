@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import Sidebar from "./Sidebar";
+import { FloatingActionButton } from "@/components/ui";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -43,10 +44,11 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-background">
       <Sidebar />
       <main className="lg:ml-64 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 lg:pt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 lg:pt-0 pb-24 lg:pb-8">
           {children}
         </div>
       </main>
+      <FloatingActionButton />
     </div>
   );
 }

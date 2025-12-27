@@ -10,3 +10,4 @@ export { default as SummaryCard } from "./SummaryCard";
 export { default as EmptyState } from "./EmptyState";
 export { default as Skeleton, SkeletonCard, SkeletonTable, SkeletonList } from "./Skeleton";
 export { default as QuickAction } from "./QuickAction";
+export { default as FloatingActionButton } from "./FloatingActionButton";
