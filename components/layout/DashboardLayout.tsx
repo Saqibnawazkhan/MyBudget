@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import Sidebar from "./Sidebar";
 import ModeRedirect from "./ModeRedirect";
+import ModeSwitcher from "./ModeSwitcher";
 import { FloatingActionButton } from "@/components/ui";
 import { Loader2 } from "lucide-react";
 
@@ -45,8 +46,16 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-background">
       <ModeRedirect />
       <Sidebar />
+
+      {/* Top Header with Mode Switcher */}
+      <div className="fixed top-0 left-0 right-0 lg:left-64 z-30 bg-background border-b border-border">
+        <div className="flex items-center justify-center py-3 px-4">
+          <ModeSwitcher />
+        </div>
+      </div>
+
       <main className="lg:ml-64 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 lg:pt-0 pb-24 lg:pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 lg:pt-16 pb-24 lg:pb-8">
           {children}
         </div>
       </main>

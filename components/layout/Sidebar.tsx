@@ -23,7 +23,6 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 const navItems: Array<{ href: string; icon: any; label: string; badge?: string }> = [
   { href: "/overview", icon: Eye, label: "Overview" },
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/pocket", icon: Smartphone, label: "Pocket Pro", badge: "Mobile" },
   { href: "/transactions", icon: ArrowUpDown, label: "Transactions" },
   { href: "/budgets", icon: Wallet, label: "Budgets" },
   { href: "/reports", icon: PieChart, label: "Reports" },

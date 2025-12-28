@@ -3,23 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
+import ModeSwitcher from "@/components/layout/ModeSwitcher";
 import PocketReports from "@/components/pocket/PocketReports";
 import PocketTransactions from "@/components/pocket/PocketTransactions";
 import PocketHistory from "@/components/pocket/PocketHistory";
-import { Home, PieChart, Calendar, TrendingUp, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
+import { Home, PieChart, Calendar, TrendingUp, LogOut, Menu, X } from "lucide-react";
 
 type TabType = "reports" | "transactions" | "history";
 
 export default function PocketProPage() {
   const router = useRouter();
-  const { user, logout, updateSettings } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabType>("reports");
   const [showMenu, setShowMenu] = useState(false);
-
-  const handleSwitchToDetailed = async () => {
-    await updateSettings({ preferredMode: "detailed" });
-    router.push("/dashboard");
-  };
 
   const handleLogout = async () => {
     await logout();
@@ -30,8 +26,14 @@ export default function PocketProPage() {
     <div className="min-h-screen bg-background">
       {/* Mobile Container - Full Screen */}
       <div className="min-h-screen bg-background relative">
-        {/* Mobile Header */}
+        {/* Mobile Header with Mode Switcher */}
         <div className="sticky top-0 z-50 bg-background-card border-b border-border">
+          {/* Mode Switcher */}
+          <div className="flex items-center justify-center py-3 px-4 border-b border-border">
+            <ModeSwitcher />
+          </div>
+
+          {/* Header with Menu */}
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent-purple flex items-center justify-center">
@@ -63,23 +65,7 @@ export default function PocketProPage() {
                 onClick={() => setShowMenu(false)}
               />
               {/* Menu */}
-              <div className="absolute right-4 top-14 bg-background-card border border-border rounded-xl shadow-2xl w-64 overflow-hidden animate-fade-in z-50">
-                <button
-                  onClick={() => {
-                    handleSwitchToDetailed();
-                    setShowMenu(false);
-                  }}
-                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-background-hover text-left transition-colors"
-                >
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <LayoutDashboard className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-text-primary">Switch to Detailed</p>
-                    <p className="text-xs text-text-muted">Full dashboard view</p>
-                  </div>
-                </button>
-                <div className="border-t border-border" />
+              <div className="absolute right-4 top-32 bg-background-card border border-border rounded-xl shadow-2xl w-64 overflow-hidden animate-fade-in z-50">
                 <button
                   onClick={() => {
                     handleLogout();
