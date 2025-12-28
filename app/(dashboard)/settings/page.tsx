@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { Card, Button, Input, Select } from "@/components/ui";
 import Header from "@/components/layout/Header";
 import { CURRENCIES } from "@/lib/utils";
-import { Save, User, Globe, Calendar, Check } from "lucide-react";
+import { Save, User, Globe, Calendar, Check, Smartphone, LayoutDashboard } from "lucide-react";
 
 const TIMEZONES = [
   { value: "UTC", label: "UTC" },
@@ -35,6 +36,7 @@ function getOrdinalSuffix(n: number) {
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { user, updateSettings } = useAuthStore();
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -43,6 +45,7 @@ export default function SettingsPage() {
     currency: "USD",
     timezone: "UTC",
     monthStartDay: "1",
+    preferredMode: "detailed" as "pocket" | "detailed",
   });
 
   useEffect(() => {
@@ -52,6 +55,7 @@ export default function SettingsPage() {
         currency: user.currency || "USD",
         timezone: user.timezone || "UTC",
         monthStartDay: user.monthStartDay?.toString() || "1",
+        preferredMode: (user.preferredMode || "detailed") as "pocket" | "detailed",
       });
     }
   }, [user]);
@@ -67,11 +71,21 @@ export default function SettingsPage() {
         currency: formData.currency,
         timezone: formData.timezone,
         monthStartDay: parseInt(formData.monthStartDay),
+        preferredMode: formData.preferredMode,
       });
 
       if (success) {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
+
+        // Redirect to appropriate page based on mode
+        setTimeout(() => {
+          if (formData.preferredMode === "pocket") {
+            router.push("/pocket");
+          } else {
+            router.push("/dashboard");
+          }
+        }, 1000);
       }
     } catch (error) {
       console.error("Failed to save settings:", error);
@@ -192,6 +206,75 @@ export default function SettingsPage() {
           <p className="text-sm text-text-muted mt-2">
             Set this to match your salary cycle for more accurate budgeting
           </p>
+        </Card>
+
+        {/* App Mode */}
+        <Card>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Smartphone className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-text-primary">
+                App Mode
+              </h3>
+              <p className="text-sm text-text-muted">
+                Choose your preferred interface
+              </p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, preferredMode: "pocket" }))}
+              className={`p-4 rounded-xl border-2 transition-all text-left ${
+                formData.preferredMode === "pocket"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+                  <Smartphone className="w-5 h-5 text-emerald-500" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-text-primary">Pocket Pro</h4>
+                  {formData.preferredMode === "pocket" && (
+                    <span className="text-xs text-primary font-medium">Active</span>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-text-muted">
+                Simple & fast mobile-first experience
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, preferredMode: "detailed" }))}
+              className={`p-4 rounded-xl border-2 transition-all text-left ${
+                formData.preferredMode === "detailed"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <LayoutDashboard className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-text-primary">Detailed Dashboard</h4>
+                  {formData.preferredMode === "detailed" && (
+                    <span className="text-xs text-primary font-medium">Active</span>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-text-muted">
+                Full-featured budget management
+              </p>
+            </button>
+          </div>
         </Card>
 
         {/* Save Button */}

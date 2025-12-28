@@ -13,7 +13,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, currency, timezone, monthStartDay } = body;
+    const { name, currency, timezone, monthStartDay, preferredMode } = body;
 
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
@@ -22,6 +22,7 @@ export async function PUT(request: NextRequest) {
         currency: currency !== undefined ? currency : user.currency,
         timezone: timezone !== undefined ? timezone : user.timezone,
         monthStartDay: monthStartDay !== undefined ? monthStartDay : user.monthStartDay,
+        preferredMode: preferredMode !== undefined ? preferredMode : user.preferredMode,
       },
       select: {
         id: true,
@@ -30,6 +31,7 @@ export async function PUT(request: NextRequest) {
         currency: true,
         timezone: true,
         monthStartDay: true,
+        preferredMode: true,
       },
     });
 
@@ -44,4 +46,9 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Add PATCH method for partial updates
+export async function PATCH(request: NextRequest) {
+  return PUT(request);
 }

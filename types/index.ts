@@ -5,6 +5,7 @@ export interface User {
   currency: string;
   timezone: string;
   monthStartDay: number;
+  preferredMode?: string | null;
   createdAt: Date;
 }
 

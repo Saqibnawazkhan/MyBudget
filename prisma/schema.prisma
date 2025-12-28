@@ -18,6 +18,7 @@ model User {
   currency      String    @default("USD")
   timezone      String    @default("UTC")
   monthStartDay Int       @default(1) // Day of month when budget cycle starts
+  preferredMode String?   // "pocket" or "detailed"
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

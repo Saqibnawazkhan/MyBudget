@@ -63,6 +63,7 @@ export async function getCurrentUser() {
       currency: true,
       timezone: true,
       monthStartDay: true,
+      preferredMode: true,
       createdAt: true,
     },
   });
