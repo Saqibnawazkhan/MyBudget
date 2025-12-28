@@ -13,41 +13,32 @@ export default function WelcomePage() {
 
   const handleContinue = async () => {
     if (!selectedMode) {
-      console.log("No mode selected");
       return;
     }
 
-    console.log("Saving mode:", selectedMode);
     setIsSubmitting(true);
 
     try {
-      // Save user preference using the auth store
-      const success = await updateSettings({
-        preferredMode: selectedMode,
-      });
-
-      console.log("Update success:", success);
+      // Use the auth store's updateSettings to ensure state is updated
+      const success = await updateSettings({ preferredMode: selectedMode });
 
       if (success) {
-        console.log("Redirecting to:", selectedMode === "pocket" ? "/pocket" : "/dashboard");
+        // Small delay to ensure state is fully updated
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Small delay to ensure state is updated
-        setTimeout(() => {
-          // Redirect based on selection
-          if (selectedMode === "pocket") {
-            router.push("/pocket");
-          } else {
-            router.push("/dashboard");
-          }
-        }, 100);
+        // Force redirect using window.location for reliability
+        if (selectedMode === "pocket") {
+          window.location.href = "/pocket";
+        } else {
+          window.location.href = "/dashboard";
+        }
       } else {
-        console.error("Failed to update settings");
         alert("Failed to save preference. Please try again.");
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error("Failed to save preference:", error);
-      alert("Failed to save preference. Please try again.");
-    } finally {
+      alert("An error occurred. Please try again.");
       setIsSubmitting(false);
     }
   };
