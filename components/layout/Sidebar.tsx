@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   Eye,
+  Smartphone,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,9 +20,10 @@ import { useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
-const navItems = [
+const navItems: Array<{ href: string; icon: any; label: string; badge?: string }> = [
   { href: "/overview", icon: Eye, label: "Overview" },
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/pocket", icon: Smartphone, label: "Pocket Pro", badge: "Mobile" },
   { href: "/transactions", icon: ArrowUpDown, label: "Transactions" },
   { href: "/budgets", icon: Wallet, label: "Budgets" },
   { href: "/reports", icon: PieChart, label: "Reports" },
@@ -99,6 +101,11 @@ export default function Sidebar() {
                   >
                     <item.icon className="w-5 h-5" />
                     <span className="font-medium">{item.label}</span>
+                    {item.badge && (
+                      <span className="ml-auto px-2 py-0.5 bg-accent-green/20 text-accent-green text-xs font-semibold rounded-full">
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
