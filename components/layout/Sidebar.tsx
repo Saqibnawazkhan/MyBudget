@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   X,
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,6 +20,7 @@ import { useAuthStore } from "@/stores/authStore";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const navItems = [
+  { href: "/overview", icon: Eye, label: "Overview" },
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/transactions", icon: ArrowUpDown, label: "Transactions" },
   { href: "/budgets", icon: Wallet, label: "Budgets" },

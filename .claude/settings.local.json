@@ -11,7 +11,11 @@
       "Bash(npx prisma generate:*)",
       "Bash(npm uninstall:*)",
       "Bash(npx prisma:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

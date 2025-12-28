@@ -11,3 +11,4 @@ export { default as EmptyState } from "./EmptyState";
 export { default as Skeleton, SkeletonCard, SkeletonTable, SkeletonList } from "./Skeleton";
 export { default as QuickAction } from "./QuickAction";
 export { default as FloatingActionButton } from "./FloatingActionButton";
+export { default as CircularProgress } from "./CircularProgress";
