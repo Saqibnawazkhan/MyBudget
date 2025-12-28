@@ -7,34 +7,46 @@ import { Smartphone, LayoutDashboard, ArrowRight, Zap, BarChart3 } from "lucide-
 
 export default function WelcomePage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, updateSettings } = useAuthStore();
   const [selectedMode, setSelectedMode] = useState<"pocket" | "detailed" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleContinue = async () => {
-    if (!selectedMode) return;
+    if (!selectedMode) {
+      console.log("No mode selected");
+      return;
+    }
 
+    console.log("Saving mode:", selectedMode);
     setIsSubmitting(true);
+
     try {
-      // Save user preference
-      const response = await fetch("/api/user/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          preferredMode: selectedMode,
-        }),
+      // Save user preference using the auth store
+      const success = await updateSettings({
+        preferredMode: selectedMode,
       });
 
-      if (response.ok) {
-        // Redirect based on selection
-        if (selectedMode === "pocket") {
-          router.push("/pocket");
-        } else {
-          router.push("/dashboard");
-        }
+      console.log("Update success:", success);
+
+      if (success) {
+        console.log("Redirecting to:", selectedMode === "pocket" ? "/pocket" : "/dashboard");
+
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          // Redirect based on selection
+          if (selectedMode === "pocket") {
+            router.push("/pocket");
+          } else {
+            router.push("/dashboard");
+          }
+        }, 100);
+      } else {
+        console.error("Failed to update settings");
+        alert("Failed to save preference. Please try again.");
       }
     } catch (error) {
       console.error("Failed to save preference:", error);
+      alert("Failed to save preference. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

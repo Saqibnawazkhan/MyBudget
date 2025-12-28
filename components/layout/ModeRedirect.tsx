@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -8,6 +8,7 @@ export default function ModeRedirect() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isLoading } = useAuthStore();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
     // Skip if still loading or not authenticated
@@ -19,18 +20,25 @@ export default function ModeRedirect() {
     // Skip if on settings (allow access to change mode)
     if (pathname === "/settings") return;
 
-    // If user hasn't selected a mode, redirect to welcome
-    if (!user.preferredMode) {
+    // Skip other pages like overview, transactions, budgets, etc
+    // Only handle redirects for dashboard and pocket pages
+    const protectedPages = ["/dashboard", "/pocket"];
+    if (!protectedPages.includes(pathname) && pathname !== "/") return;
+
+    // If user hasn't selected a mode, redirect to welcome (only once)
+    if (!user.preferredMode && !hasRedirected.current) {
+      hasRedirected.current = true;
       router.push("/welcome");
       return;
     }
 
-    // If user has selected a mode, ensure they're on the right default page
-    // Only redirect from dashboard/pocket to the other if it's the root visit
-    if (pathname === "/dashboard" && user.preferredMode === "pocket") {
-      router.push("/pocket");
-    } else if (pathname === "/pocket" && user.preferredMode === "detailed") {
-      router.push("/dashboard");
+    // If user has selected a mode and is on the root path, redirect to preferred mode
+    if (user.preferredMode && pathname === "/") {
+      if (user.preferredMode === "pocket") {
+        router.push("/pocket");
+      } else {
+        router.push("/dashboard");
+      }
     }
   }, [user, isLoading, pathname, router]);
 
